@@ -159,7 +159,7 @@ details p { margin: 6px 0 0 }
 .rm { border: 0; background: none; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 13px; justify-self: end }
 .drawer-foot { display: flex; flex-direction: column; gap: 6px; padding: 16px 20px 20px; border-top: 1px solid var(--line) }
 .drawer-foot label { font-size: 13px; font-weight: 600 }
-.drawer-foot input { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font: inherit; margin-bottom: 6px }
+.drawer-foot input[type=text], .drawer-foot select { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font: inherit; margin-bottom: 6px }
 .total { display: flex; justify-content: space-between; align-items: baseline; margin: 6px 0 10px }
 .total strong { font: 700 24px var(--font-display); font-variant-numeric: tabular-nums }
 .btn[aria-disabled="true"] { opacity: .5; pointer-events: none }
@@ -266,3 +266,15 @@ details p { margin: 6px 0 0 }
 @keyframes ico-ray { 0%, 100% { opacity: .45 } 50% { opacity: 1 } }
 @keyframes ico-fil { 0%, 100% { stroke: #ab49cc } 50% { stroke: #77dd77; filter: drop-shadow(0 0 3px #77dd77) } }
 @media (prefers-reduced-motion: reduce) { .ben-ico .ln { stroke-dashoffset: 0 } .ben-ico .swipe { opacity: 0 } }
+
+/* Método de envío en el carrito */
+.ship { border: 0; padding: 0; margin: 6px 0 4px; display: grid; gap: 8px }
+.ship legend { font-size: 13px; font-weight: 600; margin-bottom: 6px }
+.ship .opt { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; transition: border-color .2s, box-shadow .2s }
+.ship .opt input { accent-color: #7f00b2; margin-top: 3px }
+.ship .opt span { display: grid; font-size: 14px; font-weight: 600 }
+.ship .opt small { font-weight: 400; color: var(--muted); font-size: 12px }
+.ship .opt:has(input:checked) { border-color: #ab49cc; box-shadow: 0 0 0 3px rgba(171,73,204,.15) }
+.ship-extra { display: grid; gap: 4px; margin-top: 6px }
+.ship-extra[hidden] { display: none }
+.ship-extra .hint { margin: 0; font-size: 12px; color: #7f00b2 }

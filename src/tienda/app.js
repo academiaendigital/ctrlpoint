@@ -38,10 +38,18 @@
       out.push("• " + cart[k] + " x " + p.n + " — $" + money(sub));
     });
     out.push("Total: $" + money(total));
-    var name = clean($("c-name").value, 60), zone = clean($("c-zone").value, 80);
+    var name = clean($("c-name").value, 60), s = ship();
     if (name) out.push("Nombre: " + name);
-    if (zone) out.push("Zona de entrega: " + zone);
-    return { text: out.join("\n"), total: total };
+    if (s.mode === "nacional") {
+      out.push("Envío: nacional" + (s.courier ? " por " + s.courier : " (cualquier empresa)"));
+      out.push("Ciudad: " + (s.city || "por indicar"));
+    } else out.push("Envío: retiro en tienda (San Juan de los Morros)");
+    return { text: out.join("\n"), total: total, ok: s.mode !== "nacional" || !!s.city };
+  }
+
+  function ship() {
+    var r = document.querySelector('input[name="ship"]:checked');
+    return { mode: r ? r.value : "retiro", city: clean($("c-city").value, 60), courier: clean($("c-courier").value, 20) };
   }
 
   function render() {
@@ -79,7 +87,10 @@
     var m = message(), a = $("checkout"), has = Object.keys(cart).length > 0;
     $("total").textContent = "$" + money(m.total);
     a.href = "https://wa.me/" + WA + "?text=" + encodeURIComponent(m.text);
-    a.setAttribute("aria-disabled", has ? "false" : "true");
+    var nat = ship().mode === "nacional";
+    $("ship-extra").hidden = !nat;
+    $("city-hint").hidden = m.ok;
+    a.setAttribute("aria-disabled", has && m.ok ? "false" : "true");
   }
 
   function setQty(k, q) {
@@ -106,7 +117,9 @@
   scrim.onclick = closeCart;
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && drawer.classList.contains("open")) closeCart(); });
   $("c-name").addEventListener("input", updateLink);
-  $("c-zone").addEventListener("input", updateLink);
+  $("c-city").addEventListener("input", updateLink);
+  $("c-courier").addEventListener("change", updateLink);
+  document.querySelectorAll('input[name="ship"]').forEach(function (r) { r.addEventListener("change", updateLink); });
 
   // Filtros y búsqueda del catálogo
   var current = "all";

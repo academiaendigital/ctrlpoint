@@ -203,7 +203,15 @@ BODY = f'''<a class="skip" href="#catalogo">Saltar al catálogo</a>
   <p class="empty" id="cart-empty">Tu carrito está vacío.</p>
   <div class="drawer-foot">
     <label for="c-name">Tu nombre (opcional)</label><input id="c-name" type="text" maxlength="60" autocomplete="name">
-    <label for="c-zone">Zona de entrega (opcional)</label><input id="c-zone" type="text" maxlength="80" autocomplete="address-level2">
+    <fieldset class="ship"><legend>Método de envío</legend>
+      <label class="opt"><input type="radio" name="ship" value="retiro" checked><span>Retiro en tienda<small>San Juan de los Morros · lun a sáb 8am–6pm</small></span></label>
+      <label class="opt"><input type="radio" name="ship" value="nacional"><span>Envío nacional<small>A todo el país por Zoom, MRW o Tealca</small></span></label>
+    </fieldset>
+    <div class="ship-extra" id="ship-extra" hidden>
+      <label for="c-city">Ciudad de destino</label><input id="c-city" type="text" maxlength="60" autocomplete="address-level2" placeholder="Ej.: Valencia, Carabobo">
+      <label for="c-courier">Empresa de envío</label><select id="c-courier"><option>Zoom</option><option>MRW</option><option>Tealca</option><option value="">Me da igual</option></select>
+      <p class="hint" id="city-hint">Escribe la ciudad para finalizar el pedido.</p>
+    </div>
     <p class="total"><span>Total</span><strong id="total">$0</strong></p>
     <a class="btn btn-wa btn-block" id="checkout" href="https://wa.me/{WA}" target="_blank" rel="noopener" aria-disabled="true">{WA_ICON}Finalizar por WhatsApp</a>
     <p class="note">Se abrirá WhatsApp con tu pedido. Los datos de pago se envían solo por ese chat.</p>
