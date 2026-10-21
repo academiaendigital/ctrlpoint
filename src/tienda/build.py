@@ -235,7 +235,7 @@ open(os.path.join(SITE, "index.html"), "w", encoding="utf-8").write(f'''<!doctyp
 <meta name="description" content="{e(DESC)}">
 <link rel="canonical" href="{DOMAIN}/">
 <meta name="robots" content="index, follow">
-<meta name="theme-color" content="#7f00b2">
+<meta name="theme-color" content="#7f55f5">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="es_VE">
 <meta property="og:site_name" content="{STORE}">
@@ -267,7 +267,7 @@ open(os.path.join(SITE, "logo.svg"), "w").write(f'<svg xmlns="http://www.w3.org/
 open(os.path.join(SITE, "404.html"), "w", encoding="utf-8").write(f'''<!doctype html>
 <html lang="es-VE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Página no encontrada | {STORE}</title><meta name="robots" content="noindex">
-<style>body{{margin:0;min-height:100vh;display:grid;place-items:center;font:16px/1.6 system-ui,sans-serif;background:#fff;color:#17111c;text-align:center;padding:24px}}h1{{color:#7f00b2;margin:0 0 8px}}a{{display:inline-block;margin-top:16px;padding:12px 20px;background:#77dd77;color:#10260f;font-weight:700;text-decoration:none;border-radius:10px}}</style>
+<style>body{{margin:0;min-height:100vh;display:grid;place-items:center;font:16px/1.6 system-ui,sans-serif;background:#fff;color:#14112a;text-align:center;padding:24px}}h1{{color:#7f55f5;margin:0 0 8px}}a{{display:inline-block;margin-top:16px;padding:12px 20px;background:#77dd77;color:#10260f;font-weight:700;text-decoration:none;border-radius:10px}}</style>
 </head><body><main><h1>404</h1><p>Esta página no existe.</p><a href="/">Volver a la tienda</a></main></body></html>
 ''')
 open(os.path.join(SITE, "robots.txt"), "w").write(f"User-agent: *\nAllow: /\n\nSitemap: {DOMAIN}/sitemap.xml\n")

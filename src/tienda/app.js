@@ -161,9 +161,9 @@
           if (a.x < 0 || a.x > W) a.vx *= -1; if (a.y < 0 || a.y > H) a.vy *= -1;
           for (var j = i + 1; j < pts.length; j++) {
             var b = pts[j], dx = a.x - b.x, dy = a.y - b.y, d = dx * dx + dy * dy;
-            if (d < 13000) { ctx.strokeStyle = "rgba(171,73,204," + (0.35 * (1 - d / 13000)) + ")"; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
+            if (d < 13000) { ctx.strokeStyle = "rgba(152,120,255," + (0.35 * (1 - d / 13000)) + ")"; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
           }
-          ctx.fillStyle = a.g ? "#77dd77" : "#ab49cc"; ctx.beginPath(); ctx.arc(a.x, a.y, a.g ? 1.8 : 1.4, 0, 6.3); ctx.fill();
+          ctx.fillStyle = a.g ? "#77dd77" : "#9878ff"; ctx.beginPath(); ctx.arc(a.x, a.y, a.g ? 1.8 : 1.4, 0, 6.3); ctx.fill();
         }
       }
       requestAnimationFrame(tick);
