@@ -247,6 +247,12 @@ open(os.path.join(SITE, "index.html"), "w", encoding="utf-8").write(f'''<!doctyp
 open(os.path.join(SITE, "styles.css"), "w", encoding="utf-8").write(CSS)
 open(os.path.join(SITE, "app.js"), "w", encoding="utf-8").write(JS)
 open(os.path.join(SITE, "favicon.svg"), "w").write('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#7f00b2"/><path d="M9 16h14M16 9v14" stroke="#77dd77" stroke-width="4" stroke-linecap="round"/></svg>')
+open(os.path.join(SITE, "404.html"), "w", encoding="utf-8").write(f'''<!doctype html>
+<html lang="es-VE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Página no encontrada | {STORE}</title><meta name="robots" content="noindex">
+<style>body{{margin:0;min-height:100vh;display:grid;place-items:center;font:16px/1.6 system-ui,sans-serif;background:#fff;color:#17111c;text-align:center;padding:24px}}h1{{color:#7f00b2;margin:0 0 8px}}a{{display:inline-block;margin-top:16px;padding:12px 20px;background:#77dd77;color:#10260f;font-weight:700;text-decoration:none;border-radius:10px}}</style>
+</head><body><main><h1>404</h1><p>Esta página no existe.</p><a href="/">Volver a la tienda</a></main></body></html>
+''')
 open(os.path.join(SITE, "robots.txt"), "w").write(f"User-agent: *\nAllow: /\n\nSitemap: {DOMAIN}/sitemap.xml\n")
 open(os.path.join(SITE, "sitemap.xml"), "w").write(f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>{DOMAIN}/</loc><lastmod>2026-10-21</lastmod></url>\n</urlset>\n')
 # Cabeceras de seguridad (Cloudflare Pages y Netlify leen _headers)
