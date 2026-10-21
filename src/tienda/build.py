@@ -208,8 +208,13 @@ BODY = f'''<a class="skip" href="#catalogo">Saltar al catálogo</a>
     <label for="c-name">Tu nombre (opcional)</label><input id="c-name" type="text" maxlength="60" autocomplete="name">
     <fieldset class="ship"><legend>Método de envío</legend>
       <label class="opt"><input type="radio" name="ship" value="retiro" checked><span>Retiro en tienda<small>San Juan de los Morros · lun a sáb 8am–6pm</small></span></label>
+      <label class="opt"><input type="radio" name="ship" value="delivery"><span>Delivery en San Juan de los Morros<small>Te lo llevamos; coordinamos por WhatsApp</small></span></label>
       <label class="opt"><input type="radio" name="ship" value="nacional"><span>Envío nacional<small>A todo el país por Zoom, MRW o Tealca</small></span></label>
     </fieldset>
+    <div class="ship-extra" id="ship-local" hidden>
+      <label for="c-addr">Sector o dirección de entrega</label><input id="c-addr" type="text" maxlength="100" autocomplete="street-address" placeholder="Ej.: Urb. Los Samanes, calle 3">
+      <p class="hint" id="addr-hint">Escribe el sector para finalizar el pedido.</p>
+    </div>
     <div class="ship-extra" id="ship-extra" hidden>
       <label for="c-city">Ciudad de destino</label><input id="c-city" type="text" maxlength="60" autocomplete="address-level2" placeholder="Ej.: Valencia, Carabobo">
       <label for="c-courier">Empresa de envío</label><select id="c-courier"><option>Zoom</option><option>MRW</option><option>Tealca</option><option value="">Me da igual</option></select>

@@ -43,13 +43,17 @@
     if (s.mode === "nacional") {
       out.push("Envío: nacional" + (s.courier ? " por " + s.courier : " (cualquier empresa)"));
       out.push("Ciudad: " + (s.city || "por indicar"));
+    } else if (s.mode === "delivery") {
+      out.push("Envío: delivery en San Juan de los Morros");
+      out.push("Dirección: " + (s.addr || "por indicar"));
     } else out.push("Envío: retiro en tienda (San Juan de los Morros)");
-    return { text: out.join("\n"), total: total, ok: s.mode !== "nacional" || !!s.city };
+    var ok = s.mode === "nacional" ? !!s.city : s.mode === "delivery" ? !!s.addr : true;
+    return { text: out.join("\n"), total: total, ok: ok };
   }
 
   function ship() {
     var r = document.querySelector('input[name="ship"]:checked');
-    return { mode: r ? r.value : "retiro", city: clean($("c-city").value, 60), courier: clean($("c-courier").value, 20) };
+    return { mode: r ? r.value : "retiro", city: clean($("c-city").value, 60), courier: clean($("c-courier").value, 20), addr: clean($("c-addr").value, 100) };
   }
 
   function render() {
@@ -87,9 +91,11 @@
     var m = message(), a = $("checkout"), has = Object.keys(cart).length > 0;
     $("total").textContent = "$" + money(m.total);
     a.href = "https://wa.me/" + WA + "?text=" + encodeURIComponent(m.text);
-    var nat = ship().mode === "nacional";
-    $("ship-extra").hidden = !nat;
+    var mode = ship().mode;
+    $("ship-extra").hidden = mode !== "nacional";
+    $("ship-local").hidden = mode !== "delivery";
     $("city-hint").hidden = m.ok;
+    $("addr-hint").hidden = m.ok;
     a.setAttribute("aria-disabled", has && m.ok ? "false" : "true");
   }
 
@@ -118,6 +124,7 @@
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && drawer.classList.contains("open")) closeCart(); });
   $("c-name").addEventListener("input", updateLink);
   $("c-city").addEventListener("input", updateLink);
+  $("c-addr").addEventListener("input", updateLink);
   $("c-courier").addEventListener("change", updateLink);
   document.querySelectorAll('input[name="ship"]').forEach(function (r) { r.addEventListener("change", updateLink); });
 
