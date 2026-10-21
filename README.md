@@ -28,6 +28,24 @@ Para verla en local, abre `web/index.html` en el navegador.
 2. Importa `academiaendigital/ctrlpoint` y pulsa **Deploy** (Vercel lee `vercel.json`; no cambies nada).
 3. Cada push a `main` publica producción y cada pull request genera su propia URL de vista previa.
 
+## Publicar en HostGator (hosting compartido)
+
+1. En cPanel, abre el **Administrador de archivos** y entra a `public_html`.
+2. Sube **todo el contenido** de `web/`, incluido `.htaccess` (activa "Mostrar archivos ocultos").
+3. Activa el SSL gratuito del dominio en cPanel → **SSL/TLS Status**. El `.htaccess` ya fuerza HTTPS y aplica las cabeceras de seguridad.
+4. Cambia `DOMAIN` en `src/tienda/build.py` por el dominio real y vuelve a generar `web/`.
+
+## Base de datos del panel (MySQL)
+
+La tienda no usa base de datos. El panel de administración sí:
+
+1. En cPanel → **Bases de datos MySQL**, crea la base y un usuario con contraseña fuerte, y asígnale todos los privilegios.
+2. En **phpMyAdmin**, importa `db/schema.sql` y después `db/seed_productos.sql` (14 productos con su costo y stock).
+3. La vista `v_precios` calcula el precio de venta (costo + margen, redondeado hacia arriba). Coincide con los precios de la tienda.
+4. Las credenciales de la base van en un archivo de configuración **fuera** de `public_html`; nunca en el repositorio.
+
+Si cambia el inventario en `src/admin/admin_products.json`, regenera la carga inicial con `python3 db/build_seed.py`.
+
 ## Reglas del catálogo
 
 - Los precios del inventario son de **costo**. Precio de venta = costo + 30 %, redondeado hacia arriba al dólar entero.

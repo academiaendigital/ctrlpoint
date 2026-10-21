@@ -282,6 +282,42 @@ open(os.path.join(SITE, "_headers"), "w").write("""/*
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
 """)
 
+# Apache (HostGator y otros hostings compartidos con cPanel): HTTPS, cabeceras, caché y 404
+open(os.path.join(SITE, ".htaccess"), "w").write("""Options -Indexes
+ErrorDocument 404 /404.html
+DirectoryIndex index.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+  # Bloquea archivos ocultos y de respaldo
+  RewriteRule (^|/)\\.(?!well-known/) - [F]
+  RewriteRule \\.(sql|bak|env|ini|log|py|md)$ - [F,NC]
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'; upgrade-insecure-requests"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+  Header unset X-Powered-By
+  <FilesMatch "\\.(css|js|svg|png|webp|woff2)$">
+    Header set Cache-Control "public, max-age=604800"
+  </FilesMatch>
+  <FilesMatch "\\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript image/svg+xml application/xml text/plain
+</IfModule>
+""")
+
 # Vista previa para Artifact (todo en línea, sin <head>)
 open(os.path.join(OUT, "preview.html"), "w", encoding="utf-8").write(f'''<title>Tienda CTRL+</title>
 <meta name="claude:viewport-fit-sides" content="cover">
