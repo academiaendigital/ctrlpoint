@@ -1,4 +1,4 @@
-<title>Panel CTRL POINT</title>
+<title>Panel CTRL+</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Manrope:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
@@ -108,7 +108,7 @@ td input { width: 90px; padding: 6px 8px }
 
 <div class="login" id="login">
   <form id="login-form" autocomplete="off">
-    <p class="brand"><b>CTRL</b>POINT · Admin</p>
+    <p class="brand"><b>CTRL+</b> · Admin</p>
     <label for="l-mail">Correo</label><input id="l-mail" type="email" value="admin@ctrlpoint.demo">
     <label for="l-pass">Contraseña</label><input id="l-pass" type="password" value="demo-demo">
     <label for="l-otp">Código de verificación (2 pasos)</label><input id="l-otp" inputmode="numeric" maxlength="6" value="000000">
@@ -121,7 +121,7 @@ td input { width: 90px; padding: 6px 8px }
 
 <div class="app" id="app" hidden>
   <aside class="side">
-    <p class="brand"><b>CTRL</b>POINT</p>
+    <p class="brand"><b>CTRL+</b></p>
     <button class="tab on" type="button" data-t="resumen">Resumen</button>
     <button class="tab" type="button" data-t="inventario">Inventario</button>
     <button class="tab" type="button" data-t="precios">Precios y tasas</button>
@@ -385,7 +385,7 @@ td input { width: 90px; padding: 6px 8px }
       $("msg-text").textContent = "Hola, tu pedido " + ms.id + " está confirmado.\n" +
         ms.items.map(function (it) { return "• " + it[1] + " × " + bySlug[it[0]].n; }).join("\n") +
         payText(ms, bsm, P3) +
-        "\n\nCuando pagues, envíanos el número de referencia por aquí. ¡Gracias por comprar en CTRL POINT!";
+        "\n\nCuando pagues, envíanos el número de referencia por aquí. ¡Gracias por comprar en CTRL+!";
       $("msg-box").hidden = false; $("msg-box").scrollIntoView({ block: "nearest" });
     }
     if (el.id === "msg-copy") {
@@ -412,7 +412,7 @@ td input { width: 90px; padding: 6px 8px }
     var rows = s.items.map(function (it) { return "<tr><td>" + it[1] + "</td><td>" + esc(bySlug[it[0]].n) + "</td></tr>"; }).join("");
     $("label").innerHTML =
       '<div><p class="lb">Guía interna</p><p class="big">' + esc(d.no) + '</p><p>Pedido ' + esc(s.id) + " · " + esc(d.date) + '</p></div><div id="qr" aria-label="Código QR de la guía"></div>' +
-      '<div class="box"><p class="lb">Remitente</p><h3>CTRL POINT</h3><p>San Juan de los Morros, Guárico</p><p>Tel. 0412-778-2492</p></div>' +
+      '<div class="box"><p class="lb">Remitente</p><h3>CTRL+</h3><p>San Juan de los Morros, Guárico</p><p>Tel. 0412-778-2492</p></div>' +
       '<div class="box"><p class="lb">Empresa</p><h3>' + esc(d.courier) + "</h3><p>" + esc(d.pay) + "</p><p>" + esc(d.pk) + " bulto(s) · " + esc(d.kg) + " kg aprox.</p></div>" +
       '<div class="box full"><p class="lb">Destinatario</p><h3>' + esc(d.name) + "</h3><p>C.I./RIF: " + esc(d.ci) + " · Tel. " + esc(d.tel) + "</p><p>" + esc(d.dest) + "</p><p><strong>" + esc(d.city) + ", " + esc(d.state) + "</strong></p></div>" +
       '<div class="full"><p class="lb">Contenido</p><table><thead><tr><th>Cant.</th><th>Producto</th></tr></thead><tbody>' + rows + "</tbody></table></div>";

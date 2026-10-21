@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Genera la tienda CTRL POINT: sitio publicable (web/) y vista previa (build/preview.html)."""
+"""Genera la tienda CTRL+: sitio publicable (web/) y vista previa (build/preview.html)."""
 import html, json, os, sys
 from decimal import Decimal, ROUND_HALF_UP, ROUND_CEILING
 
@@ -10,7 +10,7 @@ OUT = os.path.join(ROOT, "build")              # vista previa (no se versiona)
 os.makedirs(OUT, exist_ok=True)
 os.makedirs(SITE, exist_ok=True)
 
-STORE = "CTRL POINT"
+STORE = "CTRL+"
 CITY = "San Juan de los Morros"
 HOURS = "Lunes a sábado, 8:00 a. m. a 6:00 p. m."
 DOMAIN = "https://www.tudominio.com"  # provisional: reemplazar al tener dominio
@@ -100,7 +100,7 @@ PRODUCTS_JS = json.dumps({p[0]: {"n": p[1], "p": float(sale(p[3])), "s": p[4]} f
 jsonld = json.dumps({
   "@context": "https://schema.org",
   "@graph": [
-    {"@type": "Store", "name": STORE, "url": DOMAIN + "/", "telephone": "+58 412-778-2492",
+    {"@type": "Store", "name": STORE, "url": DOMAIN + "/", "logo": DOMAIN + "/logo.png", "image": DOMAIN + "/og.png", "telephone": "+58 412-778-2492",
      "address": {"@type": "PostalAddress", "addressLocality": CITY, "addressRegion": "Guárico", "addressCountry": "VE"},
      "openingHoursSpecification": [{"@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], "opens": "08:00", "closes": "18:00"}],
      "priceRange": "$$", "currenciesAccepted": "USD, VES",
@@ -118,6 +118,9 @@ JS = open(os.path.join(os.path.dirname(__file__), "app.js"), encoding="utf-8").r
 
 WA_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3a.5.5 0 0 0 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.3-.2-.5-.3z"/></svg>'
 
+LOGO_D = open(os.path.join(ROOT, "src", "brand", "logo-path.txt")).read().strip()
+LOGO = f'<svg class="logo-svg" viewBox="0 0 644 327" aria-hidden="true" focusable="false"><path fill="currentColor" d="{LOGO_D}"/></svg>'
+
 BODY = f'''<a class="skip" href="#catalogo">Saltar al catálogo</a>
 <div class="promo" id="promo" aria-label="Novedades"><div class="wrap promo-in">
   <p class="promo-item is-on"><span class="promo-tag">Nuevo</span><span>Equipo para creadores en {CITY}: luces, trípodes, SSD y tabletas.</span><a class="promo-cta" href="#catalogo">Ver catálogo</a></p>
@@ -126,7 +129,7 @@ BODY = f'''<a class="skip" href="#catalogo">Saltar al catálogo</a>
   <p class="promo-item"><span class="promo-tag">Envíos</span><span>Enviamos a toda Venezuela por Zoom, MRW y Tealca.</span><a class="promo-cta" href="https://wa.me/{WA}?text=Hola%2C%20quiero%20hacer%20un%20pedido" target="_blank" rel="noopener">Pedir por WhatsApp</a></p>
 </div></div>
 <header class="top"><div class="wrap top-in">
-  <a class="logo" href="#inicio" aria-label="{STORE}, inicio"><span class="logo-mark">CTRL</span><span class="logo-word">POINT</span></a>
+  <a class="logo" href="#inicio" aria-label="{STORE}, inicio">{LOGO}</a>
   <nav aria-label="Principal"><a href="#inicio">Inicio</a><a href="#catalogo">Catálogo</a><a href="#como-comprar">Cómo comprar</a><a href="#contacto">Contacto</a></nav>
   <button class="cart-btn" type="button" id="open-cart" aria-label="Abrir carrito"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.4 11h11L21 7H6.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="9" cy="19.5" r="1.5" fill="currentColor"/><circle cx="17" cy="19.5" r="1.5" fill="currentColor"/></svg><span class="count" id="cart-count">0</span></button>
 </div></header>
@@ -189,7 +192,7 @@ BODY = f'''<a class="skip" href="#catalogo">Saltar al catálogo</a>
 </main>
 
 <footer class="foot"><div class="wrap foot-in">
-  <div><a class="logo" href="#inicio"><span class="logo-mark">CTRL</span><span class="logo-word">POINT</span></a><p>Equipo para foto, video y creación de contenido.</p></div>
+  <div><a class="logo" href="#inicio" aria-label="{STORE}, inicio">{LOGO}</a><p>Equipo para foto, video y creación de contenido.</p></div>
   <nav aria-label="Categorías"><p class="foot-h">Tienda</p>{"".join(f'<a href="#catalogo" data-go="{k}">{e(v)}</a>' for k, v in CATS)}</nav>
   <div><p class="foot-h">Contacto</p><p class="mono">{WA_TXT}</p><p>{CITY}, Guárico</p><p>{HOURS}</p><p>Precios en USD. Sujetos a confirmación de stock.</p></div>
 </div><div class="wrap copy">© 2026 {STORE}</div></footer>
@@ -239,9 +242,13 @@ open(os.path.join(SITE, "index.html"), "w", encoding="utf-8").write(f'''<!doctyp
 <meta property="og:title" content="{e(TITLE)}">
 <meta property="og:description" content="{e(DESC)}">
 <meta property="og:url" content="{DOMAIN}/">
-<meta property="og:image" content="{DOMAIN}/og.jpg">
+<meta property="og:image" content="{DOMAIN}/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Logo de {STORE}">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 {FONTS}
 <link rel="stylesheet" href="styles.css">
 <script type="application/ld+json">{jsonld}</script>
@@ -254,7 +261,9 @@ open(os.path.join(SITE, "index.html"), "w", encoding="utf-8").write(f'''<!doctyp
 ''')
 open(os.path.join(SITE, "styles.css"), "w", encoding="utf-8").write(CSS)
 open(os.path.join(SITE, "app.js"), "w", encoding="utf-8").write(JS)
-open(os.path.join(SITE, "favicon.svg"), "w").write('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#7f00b2"/><path d="M9 16h14M16 9v14" stroke="#77dd77" stroke-width="4" stroke-linecap="round"/></svg>')
+# Favicon: logo blanco sobre cuadro morado; logo.svg suelto para otros usos
+open(os.path.join(SITE, "favicon.svg"), "w").write(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -198 724 724"><rect x="-40" y="-198" width="724" height="724" rx="150" fill="#7f55f5"/><path fill="#fff" d="{LOGO_D}"/></svg>')
+open(os.path.join(SITE, "logo.svg"), "w").write(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 644 327"><title>{STORE}</title><path fill="#7f55f5" d="{LOGO_D}"/></svg>')
 open(os.path.join(SITE, "404.html"), "w", encoding="utf-8").write(f'''<!doctype html>
 <html lang="es-VE"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Página no encontrada | {STORE}</title><meta name="robots" content="noindex">
@@ -274,7 +283,7 @@ open(os.path.join(SITE, "_headers"), "w").write("""/*
 """)
 
 # Vista previa para Artifact (todo en línea, sin <head>)
-open(os.path.join(OUT, "preview.html"), "w", encoding="utf-8").write(f'''<title>Tienda CTRL POINT</title>
+open(os.path.join(OUT, "preview.html"), "w", encoding="utf-8").write(f'''<title>Tienda CTRL+</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 {FONTS}
 <style>{CSS}</style>

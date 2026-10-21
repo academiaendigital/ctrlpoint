@@ -14,6 +14,7 @@
   --on-green: #10260f;
   --on-purple: #ffffff;
   --brand-text: #7f00b2;
+  --logo: #7f55f5;
   --tbd: #8a5a00;
   --tbd-bg: #fff3d6;
   --font-display: "Orbitron", "Arial Black", system-ui, sans-serif;
@@ -49,8 +50,9 @@ a { color: var(--brand-text) }
 .top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line) }
 .top-in { display: flex; align-items: center; gap: 24px; padding-block: 12px }
 .logo { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-family: var(--font-display); font-weight: 700; letter-spacing: .02em }
-.logo-mark { background: var(--purple); color: var(--on-purple); padding: 3px 8px; border-radius: 8px }
-.logo-word { color: var(--fg) }
+.logo { color: var(--logo) }
+.logo-svg { display: block; height: 38px; width: auto; transition: filter .25s, transform .25s }
+.logo:hover .logo-svg { transform: rotate(-2deg) scale(1.04); filter: drop-shadow(0 0 8px rgba(127,85,245,.55)) }
 .top nav { display: flex; gap: 22px; margin-left: auto }
 .top nav a { color: var(--fg); text-decoration: none; font-weight: 600; font-size: 15px }
 .top nav a:hover { color: var(--brand-text) }
@@ -131,7 +133,7 @@ details p { margin: 6px 0 0 }
 .contact-in p { margin: 6px 0 }
 
 .foot { background: #1b0f24; color: #d9c9e4; font-size: 14px }
-.foot .logo-word { color: #fff }
+.foot .logo { color: #fff } .foot .logo-svg { height: 44px }
 .foot-in { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 28px; padding-block: 44px 28px }
 .foot nav { display: flex; flex-direction: column; gap: 6px }
 .foot a { color: #d9c9e4; text-decoration: none }
@@ -205,8 +207,6 @@ details p { margin: 6px 0 0 }
 .btn-ghost { color: var(--purple); border: 1.5px solid var(--purple) }
 .btn-ghost:hover { background: #f3e8f9 }
 
-.logo-mark { font-weight: 900; box-shadow: 0 0 12px rgba(171,73,204,.7); animation: pulse 2.8s ease-in-out infinite }
-@keyframes pulse { 50% { box-shadow: 0 0 22px rgba(171,73,204,1), 0 0 4px var(--green) } }
 .count.bump { animation: bump .45s ease }
 @keyframes bump { 40% { transform: scale(1.5); box-shadow: 0 0 14px var(--green) } }
 
@@ -242,7 +242,7 @@ details p { margin: 6px 0 0 }
 .foot { background: #0e0016; border-top: 2px solid var(--purple); box-shadow: 0 -6px 30px rgba(127,0,178,.35) }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-floor, .scan::after, .caret, .neon, .glitch::before, .glitch::after, .logo-mark, .card::before, .ben-ico, .ben-ico *, .wa-float, .hero-in { animation: none !important }
+  .hero-floor, .scan::after, .caret, .neon, .glitch::before, .glitch::after, .card::before, .ben-ico, .ben-ico *, .wa-float, .hero-in { animation: none !important }
   .hero-fx { display: none }
 }
 

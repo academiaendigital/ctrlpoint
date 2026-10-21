@@ -1,4 +1,4 @@
-# CTRL POINT
+# CTRL+
 
 Tienda virtual de equipo para foto, video y creación de contenido en San Juan de los Morros, Guárico (Venezuela). Los pedidos se envían por WhatsApp.
 
