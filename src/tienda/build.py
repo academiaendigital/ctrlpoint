@@ -71,12 +71,21 @@ def money(v):
     v = Decimal(v)
     return f"{int(v)}" if v == v.to_integral() else f"{v:.2f}".replace(".", ",")
 
-def card(p, anchor=True):
+BADGE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.4 3 8.3 7 9.5 4-1.2 7-5.1 7-9.5V6z"/><path d="m9 12 2 2 4-4"/></svg>'
+
+def badges(p):
+    # Insignias basadas en datos reales del inventario (no se inventan atributos)
+    out = [f'<span class="badge b-imp">{BADGE_ICON}Importado</span>']
+    if p[7]: out.append('<span class="badge b-dest">Destacado</span>')
+    if p[4] == 1: out.append('<span class="badge b-last">Última unidad</span>')
+    return '<div class="badges">' + "".join(out) + "</div>"
+
+def card(p, anchor=True, order=0):
     slug, name, cat, cost, stock, specs, desc, feat = p
     price = money(sale(cost))
     chips = "".join(f"<li>{e(s)}</li>" for s in specs)
-    return f'''<article class="card"{f' id="{slug}"' if anchor else ""} data-cat="{cat}" data-name="{e(name.lower())}">
-  <div class="thumb thumb-{cat}" role="img" aria-label="{e(name)}"><svg viewBox="0 0 48 48" aria-hidden="true">{ICONS[cat]}</svg><span class="ph">Foto pendiente</span></div>
+    return f'''<article class="card"{f' id="{slug}"' if anchor else ""} data-cat="{cat}" data-name="{e((name + " " + catname[cat] + " " + " ".join(specs)).lower())}" data-price="{sale(cost)}" data-stock="{stock}" data-feat="{1 if feat else 0}" data-order="{order}">
+  <div class="thumb thumb-{cat}" role="img" aria-label="{e(name)}">{badges(p)}<svg viewBox="0 0 48 48" aria-hidden="true">{ICONS[cat]}</svg><span class="ph">Foto pendiente</span></div>
   <div class="card-body">
     <p class="card-cat">{e(catname[cat])}</p>
     <h3>{e(name)}</h3>
@@ -91,27 +100,33 @@ def card(p, anchor=True):
 </article>'''
 
 featured = "\n".join(card(p, False) for p in P if p[7])
-catalog = "\n".join(card(p) for p in P)
-filters = '<button type="button" class="chip is-on" data-f="all">Todo</button>' + "".join(
-    f'<button type="button" class="chip" data-f="{k}">{e(v)}</button>' for k, v in CATS)
+catalog = "\n".join(card(p, True, i) for i, p in enumerate(P))
+count = {k: sum(1 for p in P if p[2] == k) for k, _ in CATS}
+cat_links = f'<li><button type="button" class="cat-link is-on" data-f="all" aria-pressed="true">Todas las categorías<span>{len(P)}</span></button></li>' + "".join(
+    f'<li><button type="button" class="cat-link" data-f="{k}" aria-pressed="false">{e(v)}<span>{count[k]}</span></button></li>' for k, v in CATS)
 
 PRODUCTS_JS = json.dumps({p[0]: {"n": p[1], "p": float(sale(p[3])), "s": p[4]} for p in P}, ensure_ascii=False)
 
-jsonld = json.dumps({
-  "@context": "https://schema.org",
-  "@graph": [
-    {"@type": "Store", "name": STORE, "url": DOMAIN + "/", "logo": DOMAIN + "/logo.png", "image": DOMAIN + "/og.png", "telephone": "+58 412-778-2492",
+STORE_LD = {"@type": "Store", "@id": DOMAIN + "/#tienda", "name": STORE, "url": DOMAIN + "/", "logo": DOMAIN + "/logo.png", "image": DOMAIN + "/og.png", "telephone": "+58 412-778-2492",
      "address": {"@type": "PostalAddress", "addressLocality": CITY, "addressRegion": "Guárico", "addressCountry": "VE"},
      "openingHoursSpecification": [{"@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], "opens": "08:00", "closes": "18:00"}],
      "priceRange": "$$", "currenciesAccepted": "USD, VES",
-     "paymentAccepted": "Pago Móvil, transferencia bancaria, Binance", "areaServed": "VE"},
-    {"@type": "ItemList", "name": "Catálogo", "itemListElement": [
+     "paymentAccepted": "Pago Móvil, transferencia bancaria, Binance", "areaServed": "VE"}
+jsonld_home = json.dumps({"@context": "https://schema.org", "@graph": [STORE_LD]}, ensure_ascii=False)
+jsonld_cat = json.dumps({
+  "@context": "https://schema.org",
+  "@graph": [
+    {"@type": "BreadcrumbList", "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Inicio", "item": DOMAIN + "/"},
+      {"@type": "ListItem", "position": 2, "name": "Catálogo", "item": DOMAIN + "/catalogo/"}]},
+    {"@type": "ItemList", "name": "Catálogo de productos", "numberOfItems": len(P), "itemListElement": [
       {"@type": "ListItem", "position": i + 1, "item": {
         "@type": "Product", "name": p[1], "description": p[6], "category": catname[p[2]],
-        "url": f"{DOMAIN}/#{p[0]}",
+        "url": f"{DOMAIN}/catalogo/#{p[0]}",
         "offers": {"@type": "Offer", "price": f"{sale(p[3]):.2f}", "priceCurrency": "USD",
-                   "availability": "https://schema.org/InStock"}}} for i, p in enumerate(P)]}
+                   "availability": "https://schema.org/InStock", "seller": {"@id": DOMAIN + "/#tienda"}}}} for i, p in enumerate(P)]}
   ]}, ensure_ascii=False)
+
 
 CSS = open(os.path.join(os.path.dirname(__file__), "styles.css"), encoding="utf-8").read()
 JS = open(os.path.join(os.path.dirname(__file__), "app.js"), encoding="utf-8").read().replace("__PRODUCTS__", PRODUCTS_JS).replace("__WA__", WA)
@@ -121,85 +136,41 @@ WA_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor"
 LOGO_D = open(os.path.join(ROOT, "src", "brand", "logo-path.txt")).read().strip()
 LOGO = f'<svg class="logo-svg" viewBox="0 0 644 327" aria-hidden="true" focusable="false"><path fill="currentColor" d="{LOGO_D}"/></svg>'
 
-BODY = f'''<a class="skip" href="#catalogo">Saltar al catálogo</a>
-<div class="promo" id="promo" aria-label="Novedades"><div class="wrap promo-in">
-  <p class="promo-item is-on"><span class="promo-tag">Nuevo</span><span>Equipo para creadores en {CITY}: luces, trípodes, SSD y tabletas.</span><a class="promo-cta" href="#catalogo">Ver catálogo</a></p>
-  <p class="promo-item"><span class="promo-tag">Asesoría</span><span>¿No sabes qué luz elegir? Te asesoramos sin compromiso.</span><a class="promo-cta" href="https://wa.me/{WA}?text=Hola%2C%20quiero%20asesor%C3%ADa%20para%20elegir%20un%20equipo" target="_blank" rel="noopener">Pedir asesoría</a></p>
-  <p class="promo-item"><span class="promo-tag">Stock</span><span>Unidades limitadas: varios productos tienen solo 1 disponible.</span><a class="promo-cta" href="#destacados">Ver disponibles</a></p>
-  <p class="promo-item"><span class="promo-tag">Envíos</span><span>Enviamos a toda Venezuela por Zoom, MRW y Tealca.</span><a class="promo-cta" href="https://wa.me/{WA}?text=Hola%2C%20quiero%20hacer%20un%20pedido" target="_blank" rel="noopener">Pedir por WhatsApp</a></p>
-</div></div>
-<header class="top"><div class="wrap top-in">
-  <a class="logo" href="#inicio" aria-label="{STORE}, inicio">{LOGO}</a>
-  <nav aria-label="Principal"><a href="#inicio">Inicio</a><a href="#catalogo">Catálogo</a><a href="#como-comprar">Cómo comprar</a><a href="#contacto">Contacto</a></nav>
-  <button class="cart-btn" type="button" id="open-cart" aria-label="Abrir carrito"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.4 11h11L21 7H6.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="9" cy="19.5" r="1.5" fill="currentColor"/><circle cx="17" cy="19.5" r="1.5" fill="currentColor"/></svg><span class="count" id="cart-count">0</span></button>
-</div></header>
-
-<main id="inicio">
-<section class="hero"><canvas class="hero-fx" id="hero-fx" aria-hidden="true"></canvas><div class="hero-floor" aria-hidden="true"></div><div class="scan" aria-hidden="true"></div><div class="wrap hero-in">
-  <div class="hero-copy">
-    <p class="eyebrow"><span class="prompt">&gt;</span> Importados · Foto y video · {CITY}<span class="caret" aria-hidden="true">_</span></p>
-    <h1 class="glitch" data-text="Equipo para crear contenido, listo para entregar.">Equipo para crear contenido, <span class="neon">listo para entregar.</span></h1>
-    <p class="lead">Luces NEEWER, trípodes ULANZI, SSD y tabletas XP-PEN con stock disponible en {CITY}. Arma tu pedido y finalízalo por WhatsApp.</p>
-    <div class="cta"><a class="btn btn-primary" href="#catalogo">Ver catálogo</a><a class="btn btn-ghost" href="https://wa.me/{WA}?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20sus%20productos" target="_blank" rel="noopener">{WA_ICON}Escríbenos</a></div>
-  </div>
-  <ul class="hero-stats" aria-label="Datos de la tienda">
-    <li><strong data-count="{len(P)}">{len(P)}</strong><span>productos en catálogo</span></li>
-    <li><strong data-count="4">4</strong><span>categorías</span></li>
-    <li><strong data-count="3">3</strong><span>formas de pago</span></li>
-  </ul>
-</div></section>
-
-<section class="benefits" aria-label="Beneficios"><div class="wrap ben-grid">
+BENEFITS = '''<section class="benefits" aria-label="Beneficios"><div class="wrap ben-grid">
   <div><span class="ben-ico" aria-hidden="true"><svg viewBox="0 0 48 48"><path class="ln" d="M24 7c-9.4 0-17 6.8-17 15.2 0 4.6 2.3 8.7 5.9 11.5L11 41l8.1-4c1.6.4 3.2.6 4.9.6 9.4 0 17-6.8 17-15.4S33.4 7 24 7z"/><circle class="dot d1" cx="17" cy="22.5" r="2.4"/><circle class="dot d2" cx="24" cy="22.5" r="2.4"/><circle class="dot d3" cx="31" cy="22.5" r="2.4"/></svg></span><h2>Pedido por WhatsApp</h2><p>Sin registros ni formularios. Tu carrito llega como mensaje listo.</p></div>
   <div><span class="ben-ico" aria-hidden="true"><svg viewBox="0 0 48 48"><path class="ln" d="M5 42h38M5 6v36"/><rect class="bar b1" x="10" y="26" width="6" height="14" rx="1.5"/><rect class="bar b2" x="19" y="18" width="6" height="22" rx="1.5"/><rect class="bar b3" x="28" y="22" width="6" height="18" rx="1.5"/><rect class="bar b4" x="37" y="12" width="6" height="28" rx="1.5"/></svg></span><h2>Stock a la vista</h2><p>Cada producto muestra las unidades disponibles.</p></div>
   <div><span class="ben-ico" aria-hidden="true"><svg viewBox="0 0 48 48"><rect class="ln" x="5" y="11" width="38" height="26" rx="4"/><path class="ln" d="M5 18h38"/><rect class="chip" x="10" y="24" width="8" height="6" rx="1.5"/><path class="ln" d="M24 30h13"/><path class="swipe" d="M2 9v30"/></svg></span><h2>Pagos locales</h2><p>Pago Móvil, transferencia Banesco y Binance.</p></div>
   <div><span class="ben-ico" aria-hidden="true"><svg viewBox="0 0 48 48"><path class="ln" d="M18 33c0-4-5-6.5-5-13.5a11 11 0 0 1 22 0C35 26.5 30 29 30 33z"/><path class="ln" d="M19 38h10M21 42h6"/><path class="ray" d="M24 2v3M7 7l2 2M41 7l-2 2M2 20h3M43 20h3"/><path class="fil" d="M21 33v-7l3-3 3 3v7"/></svg></span><h2>Asesoría antes de comprar</h2><p>Te ayudamos a elegir la luz o el equipo adecuado.</p></div>
-</div></section>
+</div></section>'''
 
-<section class="sec" id="destacados" aria-labelledby="h-dest"><div class="wrap">
-  <div class="sec-head"><h2 id="h-dest">Los más buscados</h2><a href="#catalogo">Ver todo el catálogo</a></div>
-  <div class="grid">{featured}</div>
-</div></section>
+def promo(R):
+    return f'''<div class="promo" id="promo" aria-label="Novedades"><div class="wrap promo-in">
+  <p class="promo-item is-on"><span class="promo-tag">Nuevo</span><span>Equipo para creadores en {CITY}: luces, trípodes, SSD y tabletas.</span><a class="promo-cta" href="{R}catalogo/">Ver catálogo</a></p>
+  <p class="promo-item"><span class="promo-tag">Asesoría</span><span>¿No sabes qué luz elegir? Te asesoramos sin compromiso.</span><a class="promo-cta" href="https://wa.me/{WA}?text=Hola%2C%20quiero%20asesor%C3%ADa%20para%20elegir%20un%20equipo" target="_blank" rel="noopener">Pedir asesoría</a></p>
+  <p class="promo-item"><span class="promo-tag">Stock</span><span>Unidades limitadas: varios productos tienen solo 1 disponible.</span><a class="promo-cta" href="{R}catalogo/?orden=stock">Ver disponibles</a></p>
+  <p class="promo-item"><span class="promo-tag">Envíos</span><span>Delivery en {CITY} y envíos a toda Venezuela por Zoom, MRW y Tealca.</span><a class="promo-cta" href="https://wa.me/{WA}?text=Hola%2C%20quiero%20hacer%20un%20pedido" target="_blank" rel="noopener">Pedir por WhatsApp</a></p>
+</div></div>'''
 
-<section class="sec sec-alt" id="catalogo" aria-labelledby="h-cat"><div class="wrap">
-  <div class="sec-head"><h2 id="h-cat">Catálogo</h2>
-    <label class="search" for="q"><span class="sr">Buscar producto</span><input id="q" type="search" placeholder="Buscar: NEEWER, SSD, trípode…" maxlength="60" autocomplete="off"></label>
-  </div>
-  <div class="filters" role="group" aria-label="Filtrar por categoría">{filters}</div>
-  <div class="grid" id="catalog-grid">{catalog}</div>
-  <p class="empty" id="empty" hidden>No encontramos productos con esa búsqueda.</p>
-</div></section>
+def header(R, here):
+    cur = lambda k: ' aria-current="page"' if k == here else ""
+    home = R or "./"
+    return f'''<header class="top"><div class="wrap top-in">
+  <a class="logo" href="{home}" aria-label="{STORE}, inicio">{LOGO}</a>
+  <nav aria-label="Principal"><a href="{home}"{cur("inicio")}>Inicio</a><a href="{R}catalogo/"{cur("catalogo")}>Catálogo</a><a href="{R}#como-comprar">Cómo comprar</a><a href="{R}#contacto">Contacto</a></nav>
+  <button class="cart-btn" type="button" id="open-cart" aria-label="Abrir carrito"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.4 11h11L21 7H6.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="9" cy="19.5" r="1.5" fill="currentColor"/><circle cx="17" cy="19.5" r="1.5" fill="currentColor"/></svg><span class="count" id="cart-count">0</span></button>
+</div></header>'''
 
-<section class="sec" id="como-comprar" aria-labelledby="h-how"><div class="wrap">
-  <h2 id="h-how">Cómo comprar</h2>
-  <ol class="steps">
-    <li><strong>Agrega al carrito</strong><span>Elige productos y cantidades.</span></li>
-    <li><strong>Envía tu pedido por WhatsApp</strong><span>El mensaje sale con el detalle y el total.</span></li>
-    <li><strong>Paga y recibe</strong><span>Confirmamos stock, te enviamos los datos de pago y coordinamos la entrega.</span></li>
-  </ol>
-</div></section>
-
-<section class="sec sec-contact" id="contacto" aria-labelledby="h-contact"><div class="wrap contact-in">
-  <div><h2 id="h-contact">Contacto</h2>
-    <p>WhatsApp: <strong class="mono">{WA_TXT}</strong></p>
-    <p>Ubicación: <strong>{CITY}, Guárico</strong></p>
-    <p>Horario: <strong>{HOURS}</strong></p>
-    <p>Zona de entrega: <span class="tbd">por definir</span></p>
-    <p>Instagram: <span class="tbd">por definir</span></p>
-  </div>
-  <a class="btn btn-wa" href="https://wa.me/{WA}" target="_blank" rel="noopener">{WA_ICON}Hablar por WhatsApp</a>
-</div></section>
-</main>
-
-<footer class="foot"><div class="wrap foot-in">
-  <div><a class="logo" href="#inicio" aria-label="{STORE}, inicio">{LOGO}</a><p>Equipo para foto, video y creación de contenido.</p></div>
-  <nav aria-label="Categorías"><p class="foot-h">Tienda</p>{"".join(f'<a href="#catalogo" data-go="{k}">{e(v)}</a>' for k, v in CATS)}</nav>
+def footer(R):
+    home = R or "./"
+    return f'''<footer class="foot"><div class="wrap foot-in">
+  <div><a class="logo" href="{home}" aria-label="{STORE}, inicio">{LOGO}</a><p>Equipo para foto, video y creación de contenido.</p></div>
+  <nav aria-label="Categorías"><p class="foot-h">Tienda</p><a href="{R}catalogo/">Todo el catálogo</a>{"".join(f'<a href="{R}catalogo/?cat={k}">{e(v)}</a>' for k, v in CATS)}</nav>
   <div><p class="foot-h">Contacto</p><p class="mono">{WA_TXT}</p><p>{CITY}, Guárico</p><p>{HOURS}</p><p>Precios en USD. Sujetos a confirmación de stock.</p></div>
 </div><div class="wrap copy">© 2026 {STORE}</div></footer>
 
-<a class="wa-float" href="https://wa.me/{WA}" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp">{WA_ICON}</a>
+<a class="wa-float" href="https://wa.me/{WA}" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp">{WA_ICON}</a>'''
 
-<div class="scrim" id="scrim" hidden></div>
+DRAWER = f'''<div class="scrim" id="scrim" hidden></div>
 <aside class="drawer" id="drawer" aria-label="Tu carrito" aria-hidden="true">
   <div class="drawer-head"><h2>Tu carrito</h2><button type="button" class="x" id="close-cart" aria-label="Cerrar carrito">×</button></div>
   <ul class="lines" id="lines"></ul>
@@ -226,44 +197,149 @@ BODY = f'''<a class="skip" href="#catalogo">Saltar al catálogo</a>
   </div>
 </aside>'''
 
+cat_tiles = "".join(f'''<a class="cat-tile" href="catalogo/?cat={k}"><svg viewBox="0 0 48 48" aria-hidden="true">{ICONS[k]}</svg><strong>{e(v)}</strong><span>{count[k]} {"producto" if count[k] == 1 else "productos"}</span></a>''' for k, v in CATS)
+
+HOME = f'''<a class="skip" href="#destacados">Saltar a los productos</a>
+{promo("")}
+{header("", "inicio")}
+
+<main id="inicio">
+<section class="hero"><canvas class="hero-fx" id="hero-fx" aria-hidden="true"></canvas><div class="hero-floor" aria-hidden="true"></div><div class="scan" aria-hidden="true"></div><div class="wrap hero-in">
+  <div class="hero-copy">
+    <p class="eyebrow"><span class="prompt">&gt;</span> Importados · Foto y video · {CITY}<span class="caret" aria-hidden="true">_</span></p>
+    <h1 class="glitch" data-text="Equipo para crear contenido, listo para entregar.">Equipo para crear contenido, <span class="neon">listo para entregar.</span></h1>
+    <p class="lead">Luces NEEWER, trípodes ULANZI, SSD y tabletas XP-PEN con stock disponible en {CITY}. Arma tu pedido y finalízalo por WhatsApp.</p>
+    <div class="cta"><a class="btn btn-primary" href="catalogo/">Ver catálogo</a><a class="btn btn-ghost" href="https://wa.me/{WA}?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20sus%20productos" target="_blank" rel="noopener">{WA_ICON}Escríbenos</a></div>
+  </div>
+  <ul class="hero-stats" aria-label="Datos de la tienda">
+    <li><strong data-count="{len(P)}">{len(P)}</strong><span>productos en catálogo</span></li>
+    <li><strong data-count="{len(CATS)}">{len(CATS)}</strong><span>categorías</span></li>
+    <li><strong data-count="3">3</strong><span>formas de pago</span></li>
+  </ul>
+</div></section>
+
+{BENEFITS}
+
+<section class="sec" id="destacados" aria-labelledby="h-dest"><div class="wrap">
+  <div class="sec-head"><h2 id="h-dest">Los más buscados</h2><a href="catalogo/">Ver todo el catálogo</a></div>
+  <div class="grid">{featured}</div>
+</div></section>
+
+<section class="sec sec-alt" id="categorias" aria-labelledby="h-cats"><div class="wrap">
+  <div class="sec-head"><h2 id="h-cats">Explora por categoría</h2><a href="catalogo/">Ver los {len(P)} productos</a></div>
+  <div class="cat-tiles">{cat_tiles}</div>
+</div></section>
+
+<section class="sec" id="como-comprar" aria-labelledby="h-how"><div class="wrap">
+  <h2 id="h-how">Cómo comprar</h2>
+  <ol class="steps">
+    <li><strong>Agrega al carrito</strong><span>Elige productos y cantidades.</span></li>
+    <li><strong>Envía tu pedido por WhatsApp</strong><span>El mensaje sale con el detalle y el total.</span></li>
+    <li><strong>Paga y recibe</strong><span>Confirmamos stock, te enviamos los datos de pago y coordinamos la entrega.</span></li>
+  </ol>
+</div></section>
+
+<section class="sec sec-contact" id="contacto" aria-labelledby="h-contact"><div class="wrap contact-in">
+  <div><h2 id="h-contact">Contacto</h2>
+    <p>WhatsApp: <strong class="mono">{WA_TXT}</strong></p>
+    <p>Ubicación: <strong>{CITY}, Guárico</strong></p>
+    <p>Horario: <strong>{HOURS}</strong></p>
+    <p>Entregas: <strong>delivery en {CITY} y envíos nacionales (Zoom, MRW, Tealca)</strong></p>
+  </div>
+  <a class="btn btn-wa" href="https://wa.me/{WA}" target="_blank" rel="noopener">{WA_ICON}Hablar por WhatsApp</a>
+</div></section>
+</main>
+
+{footer("")}
+
+{DRAWER}'''
+
+SEARCH_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>'
+GRID_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg>'
+
+CATALOG = f'''<a class="skip" href="#catalog-grid">Saltar a los productos</a>
+{promo("../")}
+{header("../", "catalogo")}
+
+<main id="inicio">
+<section class="page-head"><div class="wrap">
+  <nav class="crumbs" aria-label="Ruta"><a href="../">Inicio</a><span aria-hidden="true">/</span><span aria-current="page">Catálogo</span></nav>
+  <h1>Catálogo de productos</h1>
+  <label class="search-xl" for="q"><span class="sr">Buscar producto</span>{SEARCH_ICON}<input id="q" type="search" placeholder="Buscar por nombre, marca o categoría…" maxlength="60" autocomplete="off"></label>
+</div></section>
+
+<div class="wrap cat-layout">
+  <aside class="cat-side" aria-labelledby="h-side">
+    <button type="button" class="cat-toggle" id="cat-toggle" aria-expanded="false" aria-controls="cat-list">{GRID_ICON}<span>Categorías: <strong id="cat-current">Todas</strong></span></button>
+    <h2 id="h-side">{GRID_ICON}Categorías</h2>
+    <ul class="cat-list" id="cat-list">{cat_links}</ul>
+  </aside>
+  <section class="cat-main" aria-labelledby="h-results">
+    <div class="toolbar">
+      <p id="h-results" class="results" aria-live="polite"><strong id="n-results">{len(P)}</strong> <span id="t-results">resultados encontrados</span></p>
+      <label class="sort" for="sort">Ordenar por:<select id="sort">
+        <option value="relevancia">Relevancia</option>
+        <option value="precio-asc">Precio: menor a mayor</option>
+        <option value="precio-desc">Precio: mayor a menor</option>
+        <option value="nombre">Nombre: A a Z</option>
+        <option value="stock">Más unidades disponibles</option>
+      </select></label>
+    </div>
+    <div class="grid" id="catalog-grid">{catalog}</div>
+    <div class="empty-box" id="empty" hidden><p>No encontramos productos con esa búsqueda.</p><button type="button" class="btn btn-ghost" id="reset">Ver todo el catálogo</button></div>
+  </section>
+</div>
+</main>
+
+{footer("../")}
+
+{DRAWER}'''
+
 FONTS = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Manrope:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">'
 DESC = f"Luces NEEWER, trípodes ULANZI, SSD Crucial y tabletas XP-PEN en {CITY}, Guárico. Arma tu carrito y haz tu pedido por WhatsApp. Pago Móvil, transferencia y Binance."
 TITLE = f"{STORE} | Equipo de foto y video en {CITY}"
 
-# Versión desplegable (archivos separados, CSP estricta posible)
-open(os.path.join(SITE, "index.html"), "w", encoding="utf-8").write(f'''<!doctype html>
+# Versión desplegable (archivos separados, CSP estricta posible). R = ruta relativa a la raíz.
+def page(path, R, title, desc, url, ld, body):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    open(path, "w", encoding="utf-8").write(f'''<!doctype html>
 <html lang="es-VE">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>{e(TITLE)}</title>
-<meta name="description" content="{e(DESC)}">
-<link rel="canonical" href="{DOMAIN}/">
+<title>{e(title)}</title>
+<meta name="description" content="{e(desc)}">
+<link rel="canonical" href="{url}">
 <meta name="robots" content="index, follow">
 <meta name="theme-color" content="#7f55f5">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="es_VE">
 <meta property="og:site_name" content="{STORE}">
-<meta property="og:title" content="{e(TITLE)}">
-<meta property="og:description" content="{e(DESC)}">
-<meta property="og:url" content="{DOMAIN}/">
+<meta property="og:title" content="{e(title)}">
+<meta property="og:description" content="{e(desc)}">
+<meta property="og:url" content="{url}">
 <meta property="og:image" content="{DOMAIN}/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Logo de {STORE}">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="{R}favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="{R}apple-touch-icon.png">
 {FONTS}
-<link rel="stylesheet" href="styles.css">
-<script type="application/ld+json">{jsonld}</script>
+<link rel="stylesheet" href="{R}styles.css">
+<script type="application/ld+json">{ld}</script>
 </head>
 <body>
-{BODY}
-<script src="app.js" defer></script>
+{body}
+<script src="{R}app.js" defer></script>
 </body>
 </html>
 ''')
+
+page(os.path.join(SITE, "index.html"), "", TITLE, DESC, DOMAIN + "/", jsonld_home, HOME)
+CAT_TITLE = f"Catálogo de productos | {STORE} {CITY}"
+CAT_DESC = f"Catálogo completo de {STORE}: {len(P)} productos de iluminación, trípodes, almacenamiento y tabletas gráficas con precio y stock. Pedidos por WhatsApp, delivery en {CITY} y envíos nacionales."
+page(os.path.join(SITE, "catalogo", "index.html"), "../", CAT_TITLE, CAT_DESC, DOMAIN + "/catalogo/", jsonld_cat, CATALOG)
 open(os.path.join(SITE, "styles.css"), "w", encoding="utf-8").write(CSS)
 open(os.path.join(SITE, "app.js"), "w", encoding="utf-8").write(JS)
 # Favicon: logo blanco sobre cuadro morado; logo.svg suelto para otros usos
@@ -276,7 +352,7 @@ open(os.path.join(SITE, "404.html"), "w", encoding="utf-8").write(f'''<!doctype 
 </head><body><main><h1>404</h1><p>Esta página no existe.</p><a href="/">Volver a la tienda</a></main></body></html>
 ''')
 open(os.path.join(SITE, "robots.txt"), "w").write(f"User-agent: *\nAllow: /\n\nSitemap: {DOMAIN}/sitemap.xml\n")
-open(os.path.join(SITE, "sitemap.xml"), "w").write(f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>{DOMAIN}/</loc><lastmod>2026-10-21</lastmod></url>\n</urlset>\n')
+open(os.path.join(SITE, "sitemap.xml"), "w").write(f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>{DOMAIN}/</loc><lastmod>2026-10-23</lastmod></url>\n  <url><loc>{DOMAIN}/catalogo/</loc><lastmod>2026-10-23</lastmod></url>\n</urlset>\n')
 # Cabeceras de seguridad (Cloudflare Pages y Netlify leen _headers)
 open(os.path.join(SITE, "_headers"), "w").write("""/*
   Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'; upgrade-insecure-requests
@@ -328,7 +404,7 @@ open(os.path.join(OUT, "preview.html"), "w", encoding="utf-8").write(f'''<title>
 <meta name="claude:viewport-fit-sides" content="cover">
 {FONTS}
 <style>{CSS}</style>
-{BODY}
+{HOME}
 <script>{JS}</script>
 ''')
 print("ok", len(P))

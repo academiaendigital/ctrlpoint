@@ -115,8 +115,6 @@
       setTimeout(function () { b.classList.remove("done"); b.textContent = "Agregar al carrito"; }, 1200);
       openCart();
     }
-    var go = ev.target.closest("[data-go]");
-    if (go) applyFilter(go.getAttribute("data-go"));
   });
   $("open-cart").onclick = openCart;
   $("close-cart").onclick = closeCart;
@@ -128,24 +126,55 @@
   $("c-courier").addEventListener("change", updateLink);
   document.querySelectorAll('input[name="ship"]').forEach(function (r) { r.addEventListener("change", updateLink); });
 
-  // Filtros y búsqueda del catálogo
-  var current = "all";
+  // Página de catálogo: categorías, búsqueda, orden y contador (estado en la URL para compartir)
   var grid = $("catalog-grid");
-  function applyFilter(f) {
-    current = f;
-    document.querySelectorAll(".chip").forEach(function (c) { c.classList.toggle("is-on", c.getAttribute("data-f") === f); });
-    filter();
+  if (grid) {
+    var cards = Array.prototype.slice.call(grid.querySelectorAll(".card"));
+    var links = Array.prototype.slice.call(document.querySelectorAll(".cat-link"));
+    var cats = links.map(function (l) { return l.getAttribute("data-f"); });
+    var sortSel = $("sort"), qIn = $("q"), side = document.querySelector(".cat-side"), toggle = $("cat-toggle");
+    var ORDERS = ["relevancia", "precio-asc", "precio-desc", "nombre", "stock"];
+    var params = new URLSearchParams(location.search);
+    var current = cats.indexOf(params.get("cat")) !== -1 ? params.get("cat") : "all";
+    qIn.value = clean(params.get("q"), 60);
+    sortSel.value = ORDERS.indexOf(params.get("orden")) !== -1 ? params.get("orden") : "relevancia";
+    var num = function (c, k) { return parseFloat(c.getAttribute("data-" + k)); };
+    var CMP = {
+      "relevancia": function (a, b) { return num(b, "feat") - num(a, "feat") || num(a, "order") - num(b, "order"); },
+      "precio-asc": function (a, b) { return num(a, "price") - num(b, "price"); },
+      "precio-desc": function (a, b) { return num(b, "price") - num(a, "price"); },
+      "nombre": function (a, b) { return a.querySelector("h3").textContent.localeCompare(b.querySelector("h3").textContent, "es"); },
+      "stock": function (a, b) { return num(b, "stock") - num(a, "stock") || num(a, "price") - num(b, "price"); }
+    };
+    var apply = function () {
+      var q = clean(qIn.value, 60).toLowerCase(), shown = 0;
+      links.forEach(function (l) {
+        var on = l.getAttribute("data-f") === current;
+        l.classList.toggle("is-on", on); l.setAttribute("aria-pressed", on ? "true" : "false");
+        if (on) $("cat-current").textContent = l.firstChild.textContent;
+      });
+      cards.slice().sort(CMP[sortSel.value]).forEach(function (c) {
+        var ok = (current === "all" || c.getAttribute("data-cat") === current) && c.getAttribute("data-name").indexOf(q) !== -1;
+        c.hidden = !ok; if (ok) shown++;
+        grid.appendChild(c);
+      });
+      $("n-results").textContent = shown;
+      $("t-results").textContent = shown === 1 ? "resultado encontrado" : "resultados encontrados";
+      $("empty").hidden = shown > 0;
+      var u = new URLSearchParams();
+      if (current !== "all") u.set("cat", current);
+      if (q) u.set("q", q);
+      if (sortSel.value !== "relevancia") u.set("orden", sortSel.value);
+      try { history.replaceState(null, "", location.pathname + (u.toString() ? "?" + u : "") + location.hash); } catch (e) {}
+    };
+    var setOpen = function (o) { side.classList.toggle("open", o); toggle.setAttribute("aria-expanded", o ? "true" : "false"); };
+    links.forEach(function (l) { l.onclick = function () { current = l.getAttribute("data-f"); setOpen(false); apply(); }; });
+    toggle.onclick = function () { setOpen(!side.classList.contains("open")); };
+    qIn.addEventListener("input", apply);
+    sortSel.addEventListener("change", apply);
+    $("reset").onclick = function () { current = "all"; qIn.value = ""; apply(); qIn.focus(); };
+    apply();
   }
-  function filter() {
-    var q = clean($("q").value, 60).toLowerCase(), shown = 0;
-    grid.querySelectorAll(".card").forEach(function (c) {
-      var ok = (current === "all" || c.getAttribute("data-cat") === current) && c.getAttribute("data-name").indexOf(q) !== -1;
-      c.hidden = !ok; if (ok) shown++;
-    });
-    $("empty").hidden = shown > 0;
-  }
-  document.querySelectorAll(".chip").forEach(function (c) { c.onclick = function () { applyFilter(c.getAttribute("data-f")); }; });
-  $("q").addEventListener("input", filter);
 
   // Efectos tech: partículas en la portada, contador y foco del mouse en tarjetas
   var calm = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;

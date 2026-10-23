@@ -7,7 +7,7 @@ Tienda virtual de equipo para foto, video y creación de contenido en San Juan d
 | Carpeta | Contenido |
 | --- | --- |
 | `web/` | Sitio publicable (estático): `index.html`, `styles.css`, `app.js`, `robots.txt`, `sitemap.xml`, `_headers` (cabeceras para Cloudflare Pages o Netlify; en Vercel las aplica `vercel.json`). |
-| `src/tienda/` | Fuente de la tienda. `build.py` contiene el catálogo y genera `web/`. |
+| `src/tienda/` | Fuente de la tienda. `build.py` contiene el catálogo y genera `web/` (inicio y `web/catalogo/`). |
 | `admin-prototipo/` | Prototipo navegable del panel de administración (fase 2). Datos en memoria, solo para demostración. |
 | `src/admin/` | Fuente del prototipo del panel. |
 
