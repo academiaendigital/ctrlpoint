@@ -100,6 +100,12 @@ a { color: var(--brand-text) }
 .thumb-tripodes { background: radial-gradient(circle at 50% 45%, #ffffff, #e3f5e1 75%) }
 .thumb-almacenamiento { background: radial-gradient(circle at 50% 45%, #ffffff, #ebe5fe 75%) }
 .thumb-tabletas { background: radial-gradient(circle at 50% 45%, #ffffff, #e3f5e1 75%) }
+.thumb-audio { background: radial-gradient(circle at 50% 45%, #ffffff, #ebe5fe 75%) }
+.thumb-teclados { background: radial-gradient(circle at 50% 45%, #ffffff, #e3f5e1 75%) }
+.thumb.has-img { background: #fff }
+.thumb > img { width: 100%; height: 100%; object-fit: contain; padding: 6%; transition: transform .35s ease }
+.card:hover .thumb > img { transform: scale(1.05) }
+@media (prefers-reduced-motion: reduce) { .card:hover .thumb > img { transform: none } }
 .ph { position: absolute; left: 10px; bottom: 10px; font: 500 11px var(--font-mono); background: #ffffffd9; color: #3f3866; border: 1px solid var(--line); padding: 2px 8px; border-radius: 99px }
 .card-body { display: flex; flex-direction: column; gap: 10px; padding: 16px; flex: 1 }
 .card-cat { margin: 0; font: 500 11px var(--font-mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted) }

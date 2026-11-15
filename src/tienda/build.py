@@ -18,7 +18,8 @@ WA = "584127782492"
 WA_TXT = "0412-778-2492"
 
 CATS = [("iluminacion", "Iluminación"), ("tripodes", "Trípodes y soportes"),
-        ("almacenamiento", "Almacenamiento"), ("tabletas", "Tabletas gráficas")]
+        ("almacenamiento", "Almacenamiento"), ("tabletas", "Tabletas gráficas"),
+        ("audio", "Audio"), ("teclados", "Teclados")]
 
 P = [
  ("ulanzi-mt-78-tripode", "ULANZI MT-78 Trípode extensible de metal", "tripodes", 70, 2,
@@ -53,12 +54,33 @@ P = [
   ["XP-PEN", "Deco 01 V3"], "Tableta digitalizadora XP-PEN Deco 01 V3.", False),
  ("xp-pen-deco-pro-mw-2", "XP-PEN Deco Pro MW 2.ª gen Tableta gráfica", "tabletas", 150, 1,
   ["XP-PEN", "2.ª gen", "Deco Pro MW"], "Tableta digitalizadora XP-PEN Deco Pro MW de segunda generación (MTO962B).", True),
+ # Lote nov-2026: costo = precio unitario + envío ($37,50) prorrateado según costo (8,81 %)
+ ("combo-dji-mic-mini-2-cubierta", "Combo DJI Mic Mini 2 + cubierta magnética multicolor", "audio", Decimal("118.12"), 2,
+  ["2 TX + 1 RX", "Estuche de carga", "Cubierta multicolor"],
+  "Combo: micrófono inalámbrico DJI Mic Mini 2 (2 transmisores, 1 receptor y estuche de carga) más el kit de cubierta frontal magnética multicolor para cambiarle el color. Se vende solo en combo.", True),
+ ("qkz-file-blanco", "Audífonos QKZ FiLe con cable (blanco)", "audio", Decimal("5.46"), 2,
+  ["Con cable", "Micrófono", "HIFI"],
+  "Audífonos originales QKZ FiLe con cable y micrófono, subwoofer HIFI y cancelación de ruido. Para juegos, deporte, música y monitoreo. Color blanco.", False),
+ ("qkz-file-negro", "Audífonos QKZ FiLe con cable (negro)", "audio", Decimal("5.70"), 2,
+  ["Con cable", "Micrófono", "HIFI"],
+  "Audífonos originales QKZ FiLe con cable y micrófono, subwoofer HIFI y cancelación de ruido. Para juegos, deporte, música y monitoreo. Color negro.", False),
+ ("qkz-file-purpura", "Audífonos QKZ FiLe con cable (púrpura)", "audio", Decimal("5.92"), 2,
+  ["Con cable", "Micrófono", "HIFI"],
+  "Audífonos originales QKZ FiLe con cable y micrófono, subwoofer HIFI y cancelación de ruido. Para juegos, deporte, música y monitoreo. Color púrpura.", False),
+ ("ajazz-nk61", "Teclado mecánico AJAZZ NK61 60 % LED (negro)", "teclados", Decimal("46.36"), 1,
+  ["60 %", "Mecánico", "LED"], "Teclado mecánico compacto AJAZZ NK61 al 60 % con iluminación LED. Color negro.", True),
+ ("ajazz-ak820", "Teclado mecánico gaming AJAZZ AK820 75 % (negro)", "teclados", Decimal("33.38"), 1,
+  ["75 %", "Mecánico", "Gaming"], "Teclado mecánico gaming AJAZZ AK820 en formato 75 %. Color negro.", False),
+ ("ajazz-ak992", "Teclado mecánico retro AJAZZ AK992 100 % (gris)", "teclados", Decimal("56.53"), 2,
+  ["100 %", "Mecánico", "Retro", "Con cable"], "Teclado mecánico retro AJAZZ AK992 de tamaño completo (100 %), con cable. Color gris.", True),
 ]
 
 ICONS = {
  "iluminacion": '<path d="M24 6v6M10 12l4 4M38 12l-4 4M6 26h6M36 26h6"/><path d="M16 30a8 8 0 1 1 16 0c0 3-2 4-2 7H18c0-3-2-4-2-7z"/><path d="M19 41h10"/>',
  "tripodes": '<rect x="17" y="6" width="14" height="9" rx="2"/><path d="M24 15v8M24 23 12 42M24 23l12 19M24 23v19"/>',
  "almacenamiento": '<rect x="6" y="16" width="36" height="16" rx="2"/><path d="M12 22h10v4H12zM28 21v6M32 21v6M36 21v6"/>',
+ "audio": '<path d="M10 28v-4a14 14 0 0 1 28 0v4"/><rect x="6" y="28" width="8" height="12" rx="3"/><rect x="34" y="28" width="8" height="12" rx="3"/>',
+ "teclados": '<rect x="4" y="14" width="40" height="20" rx="3"/><path d="M10 20h2M16 20h2M22 20h2M28 20h2M34 20h4M10 25h2M16 25h2M22 25h2M28 25h2M34 25h4M14 30h20"/>',
  "tabletas": '<rect x="5" y="11" width="32" height="24" rx="3"/><rect x="11" y="16" width="20" height="14" rx="1"/><path d="m42 8-9 22-2 4 4-2 9-22z"/>',
 }
 catname = dict(CATS)
@@ -80,12 +102,21 @@ def badges(p):
     if p[4] == 1: out.append('<span class="badge b-last">Última unidad</span>')
     return '<div class="badges">' + "".join(out) + "</div>"
 
-def card(p, anchor=True, order=0):
+IMG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "web", "img")
+def has_img(slug):
+    return os.path.exists(os.path.join(IMG_DIR, slug + ".webp"))
+
+def card(p, anchor=True, order=0, R=""):
     slug, name, cat, cost, stock, specs, desc, feat = p
+    if has_img(slug):
+        media = f'<img src="{R}img/{slug}.webp" alt="{e(name)}" width="800" height="800" loading="lazy" decoding="async">'
+        thumb = f'<div class="thumb thumb-{cat} has-img">{badges(p)}{media}</div>'
+    else:
+        thumb = f'<div class="thumb thumb-{cat}" role="img" aria-label="{e(name)}">{badges(p)}<svg viewBox="0 0 48 48" aria-hidden="true">{ICONS[cat]}</svg><span class="ph">Foto pendiente</span></div>'
     price = money(sale(cost))
     chips = "".join(f"<li>{e(s)}</li>" for s in specs)
     return f'''<article class="card"{f' id="{slug}"' if anchor else ""} data-cat="{cat}" data-name="{e((name + " " + catname[cat] + " " + " ".join(specs)).lower())}" data-price="{sale(cost)}" data-stock="{stock}" data-feat="{1 if feat else 0}" data-order="{order}">
-  <div class="thumb thumb-{cat}" role="img" aria-label="{e(name)}">{badges(p)}<svg viewBox="0 0 48 48" aria-hidden="true">{ICONS[cat]}</svg><span class="ph">Foto pendiente</span></div>
+  {thumb}
   <div class="card-body">
     <p class="card-cat">{e(catname[cat])}</p>
     <h3>{e(name)}</h3>
@@ -100,7 +131,7 @@ def card(p, anchor=True, order=0):
 </article>'''
 
 featured = "\n".join(card(p, False) for p in P if p[7])
-catalog = "\n".join(card(p, True, i) for i, p in enumerate(P))
+catalog = "\n".join(card(p, True, i, "../") for i, p in enumerate(P))
 count = {k: sum(1 for p in P if p[2] == k) for k, _ in CATS}
 cat_links = f'<li><button type="button" class="cat-link is-on" data-f="all" aria-pressed="true">Todas las categorías<span>{len(P)}</span></button></li>' + "".join(
     f'<li><button type="button" class="cat-link" data-f="{k}" aria-pressed="false">{e(v)}<span>{count[k]}</span></button></li>' for k, v in CATS)
@@ -122,7 +153,7 @@ jsonld_cat = json.dumps({
     {"@type": "ItemList", "name": "Catálogo de productos", "numberOfItems": len(P), "itemListElement": [
       {"@type": "ListItem", "position": i + 1, "item": {
         "@type": "Product", "name": p[1], "description": p[6], "category": catname[p[2]],
-        "url": f"{DOMAIN}/catalogo/#{p[0]}",
+        "url": f"{DOMAIN}/catalogo/#{p[0]}", **({"image": f"{DOMAIN}/img/{p[0]}.webp"} if has_img(p[0]) else {}),
         "offers": {"@type": "Offer", "price": f"{sale(p[3]):.2f}", "priceCurrency": "USD",
                    "availability": "https://schema.org/InStock", "seller": {"@id": DOMAIN + "/#tienda"}}}} for i, p in enumerate(P)]}
   ]}, ensure_ascii=False)
@@ -145,7 +176,7 @@ BENEFITS = '''<section class="benefits" aria-label="Beneficios"><div class="wrap
 
 def promo(R):
     return f'''<div class="promo" id="promo" aria-label="Novedades"><div class="wrap promo-in">
-  <p class="promo-item is-on"><span class="promo-tag">Nuevo</span><span>Equipo para creadores en {CITY}: luces, trípodes, SSD y tabletas.</span><a class="promo-cta" href="{R}catalogo/">Ver catálogo</a></p>
+  <p class="promo-item is-on"><span class="promo-tag">Nuevo</span><span>Equipo para creadores en {CITY}: luces, micrófonos DJI, teclados, SSD y más.</span><a class="promo-cta" href="{R}catalogo/">Ver catálogo</a></p>
   <p class="promo-item"><span class="promo-tag">Asesoría</span><span>¿No sabes qué luz elegir? Te asesoramos sin compromiso.</span><a class="promo-cta" href="https://wa.me/{WA}?text=Hola%2C%20quiero%20asesor%C3%ADa%20para%20elegir%20un%20equipo" target="_blank" rel="noopener">Pedir asesoría</a></p>
   <p class="promo-item"><span class="promo-tag">Stock</span><span>Unidades limitadas: varios productos tienen solo 1 disponible.</span><a class="promo-cta" href="{R}catalogo/?orden=stock">Ver disponibles</a></p>
   <p class="promo-item"><span class="promo-tag">Envíos</span><span>Delivery en {CITY} y envíos a toda Venezuela por Zoom, MRW y Tealca.</span><a class="promo-cta" href="https://wa.me/{WA}?text=Hola%2C%20quiero%20hacer%20un%20pedido" target="_blank" rel="noopener">Pedir por WhatsApp</a></p>
@@ -208,7 +239,7 @@ HOME = f'''<a class="skip" href="#destacados">Saltar a los productos</a>
   <div class="hero-copy">
     <p class="eyebrow"><span class="prompt">&gt;</span> Importados · Foto y video · {CITY}<span class="caret" aria-hidden="true">_</span></p>
     <h1 class="glitch" data-text="Equipo para crear contenido, listo para entregar.">Equipo para crear contenido, <span class="neon">listo para entregar.</span></h1>
-    <p class="lead">Luces NEEWER, trípodes ULANZI, SSD y tabletas XP-PEN con stock disponible en {CITY}. Arma tu pedido y finalízalo por WhatsApp.</p>
+    <p class="lead">Luces NEEWER, micrófonos DJI, teclados AJAZZ, trípodes ULANZI, SSD y tabletas XP-PEN con stock disponible en {CITY}. Arma tu pedido y finalízalo por WhatsApp.</p>
     <div class="cta"><a class="btn btn-primary" href="catalogo/">Ver catálogo</a><a class="btn btn-ghost" href="https://wa.me/{WA}?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20sus%20productos" target="_blank" rel="noopener">{WA_ICON}Escríbenos</a></div>
   </div>
   <ul class="hero-stats" aria-label="Datos de la tienda">
@@ -296,7 +327,7 @@ CATALOG = f'''<a class="skip" href="#catalog-grid">Saltar a los productos</a>
 {DRAWER}'''
 
 FONTS = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Manrope:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">'
-DESC = f"Luces NEEWER, trípodes ULANZI, SSD Crucial y tabletas XP-PEN en {CITY}, Guárico. Arma tu carrito y haz tu pedido por WhatsApp. Pago Móvil, transferencia y Binance."
+DESC = f"Luces NEEWER, micrófonos DJI, teclados AJAZZ, SSD y tabletas XP-PEN en {CITY}, Guárico. Pide por WhatsApp; pago móvil y Binance."
 TITLE = f"{STORE} | Equipo de foto y video en {CITY}"
 
 # Versión desplegable (archivos separados, CSP estricta posible). R = ruta relativa a la raíz.
@@ -338,7 +369,7 @@ def page(path, R, title, desc, url, ld, body):
 
 page(os.path.join(SITE, "index.html"), "", TITLE, DESC, DOMAIN + "/", jsonld_home, HOME)
 CAT_TITLE = f"Catálogo de productos | {STORE} {CITY}"
-CAT_DESC = f"Catálogo completo de {STORE}: {len(P)} productos de iluminación, trípodes, almacenamiento y tabletas gráficas con precio y stock. Pedidos por WhatsApp, delivery en {CITY} y envíos nacionales."
+CAT_DESC = f"Catálogo completo de {STORE}: {len(P)} productos de iluminación, audio, teclados, trípodes, almacenamiento y tabletas gráficas con precio y stock. Pedidos por WhatsApp, delivery en {CITY} y envíos nacionales."
 page(os.path.join(SITE, "catalogo", "index.html"), "../", CAT_TITLE, CAT_DESC, DOMAIN + "/catalogo/", jsonld_cat, CATALOG)
 open(os.path.join(SITE, "styles.css"), "w", encoding="utf-8").write(CSS)
 open(os.path.join(SITE, "app.js"), "w", encoding="utf-8").write(JS)

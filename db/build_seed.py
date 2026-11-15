@@ -8,7 +8,7 @@ def q(s):
     return "'" + str(s).replace("\\", "\\\\").replace("'", "''") + "'"
 
 cats = sorted({p["c"] for p in P})
-out = ["-- CTRL+ · Inventario inicial (costos del Excel \"Total Stock.xlsx\"). Generado por db/build_seed.py.",
+out = ["-- CTRL+ · Inventario inicial (costos del Excel \"Total Stock.xlsx\"; lote nov-2026 con envío prorrateado). Generado por db/build_seed.py.",
        "SET NAMES utf8mb4;", "",
        "INSERT INTO categorias (nombre) VALUES " + ", ".join(f"({q(c)})" for c in cats) + ";", "",
        "INSERT INTO productos (sku, slug, nombre, categoria_id, costo_usd, margen, stock, stock_minimo) VALUES"]
